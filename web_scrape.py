@@ -10,8 +10,6 @@ response.raise_for_status()
 #HTML Parse
 soup = BeautifulSoup(response.text, "html.parser")
 
-print(soup)
-
 products = []
 for book in soup.select(".product_pod"):
     title = book.h3.a["title"]

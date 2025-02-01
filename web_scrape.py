@@ -2,29 +2,43 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
-#Fetch from URL
-url = "http://books.toscrape.com/"
-response = requests.get(url)
-response.raise_for_status()
+def fetch_web_data(url):
+    response = requests.get(url)
+    response.raise_for_status()
+    return response
 
-#HTML Parse
-soup = BeautifulSoup(response.text, "html.parser")
-
-products = []
-for book in soup.select(".product_pod"):
-    title = book.h3.a["title"]
-    price = book.select_one(".price_color").text
-    availability = book.select_one(".availability").text
-    link = book.h3.a["href"]
-
-    products.append({
-        "Title": title,
-        "Price": price,
-        "Availability": availability,
-        "Link": link
-    })
+def parse_html(response):
+    soup = BeautifulSoup(response.text, "html.parser")
+    return soup
 
 
-df = pd.DataFrame(products)
+def convert_to_df(soup):
+    products =[]
+    for product in soup.select("div.product-box-top-side"):
+        name = product.select_one("h3.item-title a").get_text(strip=True)
+        rating = product.select_one("span.bold").get_text(strip=True)
+        review_count = product.select_one("span.text-underline").get_text(strip=True)
+        products.append({
+            "Name": name,
+            "Rating": rating,
+            "Review Count": review_count
+            })
+        
 
-df.to_csv("books.csv", index=False)
+
+    df = pd.DataFrame(products)
+
+    return df
+
+url = "https://www.datart.cz/iphone.html"
+
+response = fetch_web_data(url)
+
+soup = parse_html(response)
+
+df = convert_to_df(soup)
+
+print(df)
+
+
+df.to_csv("products.csv", index=False)
